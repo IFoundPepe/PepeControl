@@ -55,10 +55,16 @@
                               "DISABLE" or "MODE" or "BLEUART" or
                               "HWUART"  or "SPI"  or "MANUAL"
     -----------------------------------------------------------------------*/
-    #define FACTORYRESET_ENABLE         1
+    #define FACTORYRESET_ENABLE         0
     #define MINIMUM_FIRMWARE_VERSION    "0.6.6"
     #define MODE_LED_BEHAVIOUR          "MODE"
 /*=========================================================================*/
+
+// GLOBAL VARIABLES CUZ I IZ BAD CODER!!!! At least I initialized them...
+int look  = 128;
+int lean  = 0;
+int flap  = 0;
+int tweet = 0;
 
 // Create the bluefruit object, either software serial...uncomment these lines
 /*
@@ -181,16 +187,32 @@ void loop(void)
     return;
   }
   // Some data was found, its in the buffer
-  Serial.print(F("[Recv] ")); Serial.println(ble.buffer);
+  Serial.print(F("[Recv] "));
+
+  String tmp = "";
   
-   /*mirror back the text*/
-  ble.print("AT+BLEUARTTX=");
-  ble.println(ble.buffer);
+  //Data transmit interface:
+  //      ! == look
+  //      @ == lean
+  //      $ == flap
+  //      # == tweet (see what I did there ;) )
+  for(int i = 0; ble.buffer[i] != '%'; i++)
+  { 
+    tmp += ble.buffer[i];
+ 
+
+  }
+  
+  Serial.println(tmp);
+  tmp = "";
+   /*not mirroring back the text*/
+  //ble.print("AT+BLEUARTTX=");
+  //ble.println(ble.buffer);
 
   // check response stastus
-  if (! ble.waitForOK() ) {
-    Serial.println(F("Failed to send?"));
-  }
+  //if (! ble.waitForOK() ) {
+  //  Serial.println(F("Failed to send?"));
+  //}
   
   ble.waitForOK();
 
@@ -218,7 +240,7 @@ bool getUserInput(char buffer[], uint8_t maxSize)
   {
     count += Serial.readBytes(buffer+count, maxSize);
     delay(2);
-  } while( (count < maxSize) && (Serial.available()) );
+  } while( (count < maxSize) && (Serial.available()) && buffer[count] != '#' );
 
   return true;
 }
