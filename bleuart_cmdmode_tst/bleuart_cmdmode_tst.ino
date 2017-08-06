@@ -18,11 +18,26 @@
   #include <SoftwareSerial.h>
 #endif
 
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
 
 #include "BluefruitConfig.h"
+
+// called this way, it uses the default address 0x40
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+// you can also call it with a different address you want
+//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
+
+// Depending on your servo make, the pulse width min and max may vary, you 
+// want these to be as small/large as possible without hitting the hard stop
+// for max range. You'll have to tweak them as necessary to match the servos you
+// have!
+#define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -152,6 +167,10 @@ void setup(void)
     ble.sendCommandCheckOK("AT+HWModeLED=" MODE_LED_BEHAVIOUR);
     Serial.println(F("******************************"));
   }
+
+  // Servo stuff
+  pwm.begin();
+  pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 }
 
 /**************************************************************************/
@@ -191,19 +210,22 @@ void loop(void)
 
   String tmp = "";
   
-  //Data transmit interface:
-  //      ! == look
-  //      @ == lean
-  //      $ == flap
-  //      # == tweet (see what I did there ;) )
   for(int i = 0; ble.buffer[i] != '%'; i++)
   { 
     tmp += ble.buffer[i];
- 
-
   }
+
+
+  //parse the data
+  char packet[sizeof(tmp)];
+  tmp.toCharArray(packet, sizeof(tmp));
+  parseDataPacket(packet);
+
+  //update servo positions based on new data
+
+
   
-  Serial.println(tmp);
+  //Serial.println(tmp);
   tmp = "";
    /*not mirroring back the text*/
   //ble.print("AT+BLEUARTTX=");
@@ -244,3 +266,19 @@ bool getUserInput(char buffer[], uint8_t maxSize)
 
   return true;
 }
+
+bool parseDataPacket(const char* input)
+{
+    Serial.println(input);
+    //if(
+      sscanf( input,"%d|%d|%d|%d",&look,&lean,&flap,&tweet ) ;
+      //== 4)
+    {
+      Serial.println(look);
+      Serial.println(lean);
+      Serial.println(flap);
+      Serial.println(tweet);
+    }
+}
+
+
