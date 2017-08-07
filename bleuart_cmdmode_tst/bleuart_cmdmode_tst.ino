@@ -210,7 +210,7 @@ void loop(void)
 
   String tmp = "";
   
-  for(int i = 0; ble.buffer[i] != '%'; i++)
+ for(int i = 0; ble.buffer[i] != '%'; i++)
   { 
     tmp += ble.buffer[i];
   }
@@ -222,7 +222,7 @@ void loop(void)
   parseDataPacket(packet);
 
   //update servo positions based on new data
-
+  setServoPositions();
 
   
   //Serial.println(tmp);
@@ -270,15 +270,24 @@ bool getUserInput(char buffer[], uint8_t maxSize)
 bool parseDataPacket(const char* input)
 {
     Serial.println(input);
-    //if(
-      sscanf( input,"%d|%d|%d|%d",&look,&lean,&flap,&tweet ) ;
-      //== 4)
+    if(sscanf( input,"%d|%d|%d|%d",&look,&lean,&flap,&tweet ) == 4)
     {
       Serial.println(look);
       Serial.println(lean);
       Serial.println(flap);
       Serial.println(tweet);
+      return true;
     }
+    return false;
 }
 
+bool setServoPositions()
+{
+   pwm.setPWM(0, 0,(look+150));
+   pwm.setPWM(1, 0,(lean+150));
+   if(flap == 1)
+    pwm.setPWM(2, 0, SERVOMAX);
+   else
+    pwm.setPWM(2, 0, SERVOMIN); ;
+}
 
