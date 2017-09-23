@@ -283,8 +283,8 @@ bool parseDataPacket(const char* input)
 
 bool setServoPositions()
 {
-   pwm.setPWM(0, 0,(look+150));
-   pwm.setPWM(1, 0,(lean+150));
+   pwm.setPWM(0, 0,(look));
+   pwm.setPWM(1, 0,(lean));
    if(flap == 1)
     pwm.setPWM(2, 0, SERVOMAX);
    else
