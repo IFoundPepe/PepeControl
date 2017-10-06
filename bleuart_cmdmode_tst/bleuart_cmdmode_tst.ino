@@ -196,8 +196,6 @@ void setup(void)
      Serial.println(F("Couldn't find VS1053, do you have the right pins defined?"));
      while (1);
   }
-
-    musicPlayer.sineTest(0x44, 500);    // Make a tone to indicate VS1053 is working
   
   if (!SD.begin(CARDCS)) {
     Serial.println(F("SD failed, or not present"));
@@ -326,12 +324,9 @@ bool parseDataPacket(const char* input)
 
 bool setServoPositions()
 {
-   pwm.setPWM(0, 0,(look));
-   pwm.setPWM(1, 0,(lean));
-   if(flap == 1)
-    pwm.setPWM(2, 0, SERVOMAX);
-   else
-    pwm.setPWM(2, 0, SERVOMIN); ;
+   pwm.setPWM(0, 0, look);
+   pwm.setPWM(1, 0, lean);
+   pwm.setPWM(2, 0, flap);
 }
 
 /// File listing helper
