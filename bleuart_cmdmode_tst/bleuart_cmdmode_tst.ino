@@ -98,7 +98,7 @@ int lean  = 0;
 int flap  = 0;
 int tweet = 0;
 
-char* soundArray[]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
+char* soundArray[100]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
 "Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3"};
 
 // Create the bluefruit object, either software serial...uncomment these lines
@@ -261,10 +261,9 @@ void loop(void)
   //update servo positions based on new data
   setServoPositions();
 
-  if(tweet > 0)
+  if(tweet > 0 && tweet < 99)
   {
-      musicPlayer.playFullFile(soundArray[random(0,9)]);
-      //musicPlayer.playFullFile("Pepe1.mp3");
+      musicPlayer.playFullFile(soundArray[tweet]);
   }
   
   //Serial.println(tmp);
