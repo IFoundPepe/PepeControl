@@ -54,6 +54,7 @@ Adafruit_VS1053_FilePlayer musicPlayer =
 // have!
 #define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
+#define MAXFILELENGTH 100
 
 
 /*=========================================================================
@@ -98,7 +99,7 @@ int lean  = 0;
 int flap  = 0;
 int tweet = 0;
 
-char* soundArray[100]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
+char* soundArray[MAXFILELENGTH]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
 "Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3"};
 
 // Create the bluefruit object, either software serial...uncomment these lines
@@ -261,7 +262,7 @@ void loop(void)
   //update servo positions based on new data
   setServoPositions();
 
-  if(tweet > 0 && tweet < 99)
+  if(tweet > 0 && tweet < (MAXFILELENGTH-1) )
   {
       musicPlayer.playFullFile(soundArray[tweet - 1]);
   }
