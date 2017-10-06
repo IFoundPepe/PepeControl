@@ -249,14 +249,14 @@ void loop(void)
   String tmp = "";
   
  for(int i = 0; ble.buffer[i] != '%'; i++)
-  { 
+ { 
     tmp += ble.buffer[i];
-  }
-
-
+ }
   //parse the data
-  char packet[sizeof(tmp)];
-  tmp.toCharArray(packet, sizeof(tmp));
+  char packet[tmp.length()+1];
+  
+  tmp.toCharArray(packet, tmp.length()+1);
+  
   parseDataPacket(packet);
 
   //update servo positions based on new data
@@ -310,8 +310,7 @@ bool getUserInput(char buffer[], uint8_t maxSize)
 
 bool parseDataPacket(const char* input)
 {
-    Serial.println(input);
-    if(sscanf( input,"%d|%d|%d|%d",&look,&lean,&flap,&tweet ) == 4)
+    if(sscanf( input,"%d|%d|%d|%d", &look,&lean,&flap,&tweet ) == 4)
     {
       Serial.println(look);
       Serial.println(lean);
