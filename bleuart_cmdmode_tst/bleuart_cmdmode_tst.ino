@@ -14,6 +14,12 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include <SD.h>
+#include <Adafruit_VS1053.h>
+
+// These are the pins used
+#define VS1053_RESET   -1     // VS1053 reset pin (not used!)
+
 #if not defined (_VARIANT_ARDUINO_DUE_X_) && not defined (_VARIANT_ARDUINO_ZERO_)
   #include <SoftwareSerial.h>
 #endif
@@ -32,12 +38,23 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
 // you can also call it with a different address you want
 //Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
 
+// Feather M0 or 32u4
+  #define VS1053_CS       6     // VS1053 chip select pin (output)
+  #define VS1053_DCS     10     // VS1053 Data/command select pin (output)
+  #define CARDCS          5     // Card chip select pin
+  // DREQ should be an Int pin *if possible* (not possible on 32u4)
+  #define VS1053_DREQ     9     // VS1053 Data request, ideally an Interrupt pin
+
+Adafruit_VS1053_FilePlayer musicPlayer = 
+  Adafruit_VS1053_FilePlayer(VS1053_RESET, VS1053_CS, VS1053_DCS, VS1053_DREQ, CARDCS);
+
 // Depending on your servo make, the pulse width min and max may vary, you 
 // want these to be as small/large as possible without hitting the hard stop
 // for max range. You'll have to tweak them as necessary to match the servos you
 // have!
 #define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
 #define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
+
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -80,6 +97,9 @@ int look  = 128;
 int lean  = 0;
 int flap  = 0;
 int tweet = 0;
+
+char* soundArray[]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
+"Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3"};
 
 // Create the bluefruit object, either software serial...uncomment these lines
 /*
@@ -171,6 +191,25 @@ void setup(void)
   // Servo stuff
   pwm.begin();
   pwm.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
+
+  if (! musicPlayer.begin()) { // initialise the music player
+     Serial.println(F("Couldn't find VS1053, do you have the right pins defined?"));
+     while (1);
+  }
+
+    musicPlayer.sineTest(0x44, 500);    // Make a tone to indicate VS1053 is working
+  
+  if (!SD.begin(CARDCS)) {
+    Serial.println(F("SD failed, or not present"));
+    while (1);  // don't do anything more
+  }
+  Serial.println("SD OK!");
+  
+  // list files
+  printDirectory(SD.open("/"), 0);
+  
+  // Set volume for left, right channels. lower numbers == louder volume!
+  musicPlayer.setVolume(10,10);
 }
 
 /**************************************************************************/
@@ -224,6 +263,11 @@ void loop(void)
   //update servo positions based on new data
   setServoPositions();
 
+  if(tweet > 0)
+  {
+      musicPlayer.playFullFile(soundArray[random(0,9)]);
+      //musicPlayer.playFullFile("Pepe1.mp3");
+  }
   
   //Serial.println(tmp);
   tmp = "";
@@ -237,7 +281,6 @@ void loop(void)
   //}
   
   ble.waitForOK();
-
 
 }
 
@@ -289,5 +332,37 @@ bool setServoPositions()
     pwm.setPWM(2, 0, SERVOMAX);
    else
     pwm.setPWM(2, 0, SERVOMIN); ;
+}
+
+/// File listing helper
+void printDirectory(File dir, int numTabs) {
+   while(true) {
+     
+     File entry =  dir.openNextFile();
+     if (! entry) {
+       // no more files
+       //Serial.println("**nomorefiles**");
+       break;
+     }
+     for (uint8_t i=0; i<numTabs; i++) {
+       Serial.print('\t');
+     }
+     Serial.print(entry.name());
+     if (entry.isDirectory()) {
+       Serial.println("/");
+       printDirectory(entry, numTabs+1);
+     } else {
+       // files have sizes, directories do not
+       Serial.print("\t\t");
+       Serial.println(entry.size(), DEC);
+     }
+     entry.close();
+   }
+}
+
+void loadSoundArray()
+{
+  
+
 }
 
