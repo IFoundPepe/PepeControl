@@ -24,7 +24,7 @@
   #include <SoftwareSerial.h>
 #endif
 
-#include <Wire.h>  
+#include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
 #include "Adafruit_BLE.h"
@@ -199,12 +199,12 @@ void setup(void)
   
   if (!SD.begin(CARDCS)) {
     Serial.println(F("SD failed, or not present"));
-    while (1);  // don't do anything more
+    //while (1);  // don't do anything more
   }
   Serial.println("SD OK!");
   
   // list files
-  printDirectory(SD.open("/"), 0);
+  //printDirectory(SD.open("/"), 0);
   
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(10,10);
