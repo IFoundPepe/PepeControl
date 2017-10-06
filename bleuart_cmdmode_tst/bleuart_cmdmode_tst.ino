@@ -263,7 +263,7 @@ void loop(void)
 
   if(tweet > 0 && tweet < 99)
   {
-      musicPlayer.playFullFile(soundArray[tweet]);
+      musicPlayer.playFullFile(soundArray[tweet - 1]);
   }
   
   //Serial.println(tmp);
