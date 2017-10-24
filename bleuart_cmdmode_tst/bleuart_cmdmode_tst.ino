@@ -56,6 +56,8 @@ Adafruit_VS1053_FilePlayer musicPlayer =
 #define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
 #define MAXFILELENGTH 100
 
+#define FLAPMIN   325
+#define FLAPMAX   600
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -100,7 +102,7 @@ int flap  = 0;
 int tweet = 0;
 
 char* soundArray[MAXFILELENGTH]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
-"Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3"};
+"Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3","WHISTLE.OGG"};
 
 // Create the bluefruit object, either software serial...uncomment these lines
 /*
@@ -208,7 +210,7 @@ void setup(void)
   //printDirectory(SD.open("/"), 0);
   
   // Set volume for left, right channels. lower numbers == louder volume!
-  musicPlayer.setVolume(10,10);
+  musicPlayer.setVolume(1,1);
 }
 
 /**************************************************************************/
@@ -323,9 +325,9 @@ bool parseDataPacket(const char* input)
 
 bool setServoPositions()
 {
-   pwm.setPWM(0, 0, look);
-   pwm.setPWM(1, 0, lean);
-   pwm.setPWM(2, 0, flap);
+   pwm.setPWM(6, 0, look);
+   pwm.setPWM(5, 0, lean);
+   pwm.setPWM(4, 0, flap);
 }
 
 /// File listing helper
