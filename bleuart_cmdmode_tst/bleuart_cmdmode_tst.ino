@@ -102,7 +102,7 @@ int flap  = 0;
 int tweet = 0;
 
 char* soundArray[MAXFILELENGTH]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
-"Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3","WHISTLE.OGG"};
+"Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3","whistle.mp3"};
 
 // Create the bluefruit object, either software serial...uncomment these lines
 /*
