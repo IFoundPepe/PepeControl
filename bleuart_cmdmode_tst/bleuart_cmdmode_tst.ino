@@ -266,6 +266,7 @@ void loop(void)
 
   if(tweet > 0 && tweet < (MAXFILELENGTH-1) )
   {
+      musicPlayer.setVolume(1,1);
       musicPlayer.playFullFile(soundArray[tweet - 1]);
   }
   
