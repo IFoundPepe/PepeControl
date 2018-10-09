@@ -45,15 +45,14 @@ Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
   // DREQ should be an Int pin *if possible* (not possible on 32u4)
   #define VS1053_DREQ     9     // VS1053 Data request, ideally an Interrupt pin
 
-Adafruit_VS1053_FilePlayer musicPlayer = 
-  Adafruit_VS1053_FilePlayer(VS1053_RESET, VS1053_CS, VS1053_DCS, VS1053_DREQ, CARDCS);
+Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(VS1053_RESET, VS1053_CS, VS1053_DCS, VS1053_DREQ, CARDCS);
 
 // Depending on your servo make, the pulse width min and max may vary, you 
 // want these to be as small/large as possible without hitting the hard stop
 // for max range. You'll have to tweak them as necessary to match the servos you
 // have!
-#define SERVOMIN  150 // this is the 'minimum' pulse length count (out of 4096)
-#define SERVOMAX  600 // this is the 'maximum' pulse length count (out of 4096)
+#define SERVOMIN  165 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  540 // this is the 'maximum' pulse length count (out of 4096)
 #define MAXFILELENGTH 100
 
 #define FLAPMIN   325
@@ -71,7 +70,7 @@ Adafruit_VS1053_FilePlayer musicPlayer =
    
                               When deploying your project, however, you will
                               want to disable factory reset by setting this
-                              value to 0.  If you are making changes to your
+                              value to 0.  If you are making changes to your 
                               Bluefruit LE device via AT commands, and those
                               changes aren't persisting across resets, this
                               is the reason why.  Factory reset will erase
@@ -122,7 +121,6 @@ Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_
 //Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_SCK, BLUEFRUIT_SPI_MISO,
 //                             BLUEFRUIT_SPI_MOSI, BLUEFRUIT_SPI_CS,
 //                             BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
-
 
 // A small helper
 void error(const __FlashStringHelper*err) {
@@ -211,6 +209,7 @@ void setup(void)
   
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(1,1);
+
 }
 
 /**************************************************************************/
@@ -323,12 +322,28 @@ bool parseDataPacket(const char* input)
     }
     return false;
 }
-
+int pulselength = 0;
+int prevPulseLength = 0;
 bool setServoPositions()
-{
-   pwm.setPWM(6, 0, look);
-   pwm.setPWM(5, 0, lean);
-   pwm.setPWM(4, 0, flap);
+{  
+  pwm.setPWM(1, 0, lean);
+  pwm.setPWM(2, 0, flap);
+
+  pulselength = map(look, 0, 180, SERVOMIN, SERVOMAX);
+  if (pulselength > prevPulseLength) {
+    for (uint16_t pulselen = prevPulseLength; pulselen < pulselength; pulselen++) {
+      pwm.setPWM(0, 0, pulselen);
+    }
+  }
+  else 
+  {
+    for (uint16_t pulselen = prevPulseLength; pulselen > pulselength; pulselen--) {
+      pwm.setPWM(0, 0, pulselen); 
+    }
+  }
+  prevPulseLength = pulselength;
+  
+  return true;
 }
 
 /// File listing helper
