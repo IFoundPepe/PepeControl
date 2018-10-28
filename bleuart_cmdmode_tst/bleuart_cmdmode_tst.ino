@@ -1,3 +1,5 @@
+#include <Adafruit_NeoPixel.h>
+
 /*********************************************************************
  This is an example for our nRF51822 based Bluefruit LE modules
 
@@ -16,6 +18,11 @@
 #include <SPI.h>
 #include <SD.h>
 #include <Adafruit_VS1053.h>
+
+#define PIN 19
+#define LASERPIN 18
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(2, PIN, NEO_GRB + NEO_KHZ800);
 
 // These are the pins used
 #define VS1053_RESET   -1     // VS1053 reset pin (not used!)
@@ -57,6 +64,8 @@ Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(VS1053_RESET
 
 #define FLAPMIN   325
 #define FLAPMAX   600
+
+
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -100,6 +109,8 @@ int lean  = 0;
 int flap  = 0;
 int tweet = 0;
 
+int laser_count = 0;
+
 char* soundArray[MAXFILELENGTH]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
 "Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3","whistle.mp3"};
 
@@ -136,6 +147,18 @@ void error(const __FlashStringHelper*err) {
 /**************************************************************************/
 void setup(void)
 {
+  uint32_t color  = 0x00ffbb; // aqua
+  strip.begin();
+  strip.show(); // Initialize all pixels to 'off'
+  strip.setPixelColor(0,color);
+  strip.setPixelColor(1,color);  
+  strip.show();
+  
+  pinMode(LASERPIN,OUTPUT);
+  digitalWrite(LASERPIN,HIGH);
+  pinMode(LASERPIN-1,OUTPUT);
+  digitalWrite(LASERPIN-1,HIGH);
+  
 /*  while (!Serial);  // required for Flora & Micro*/
   delay(500);
 
@@ -163,7 +186,7 @@ void setup(void)
 
   /* Disable command echo from Bluefruit */
   ble.echo(false);
-
+  
   Serial.println("Requesting Bluefruit info:");
   /* Print Bluefruit information */
   ble.info();
@@ -210,6 +233,10 @@ void setup(void)
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(1,1);
 
+  //
+  
+
+
 }
 
 /**************************************************************************/
@@ -219,6 +246,7 @@ void setup(void)
 /**************************************************************************/
 void loop(void)
 {
+  
   // Check for user input
   char inputs[BUFSIZE+1];
 
@@ -282,6 +310,23 @@ void loop(void)
   
   ble.waitForOK();
 
+  //if(laser_count++ > 50)
+  //{
+    //digitalWrite(LASERPIN,HIGH);
+    //if(laser_count > 100)
+    //{
+      //laser_count = 0;
+    //}
+  //}
+  //else
+  //{
+    //digitalWrite(LASERPIN,LOW);
+  //}
+  
+  //pixels.setPixelColor(0,color);
+  //pixels.setPixelColor(1,color);  
+  //pixels.show();
+  //delay(500);
 }
 
 /**************************************************************************/
