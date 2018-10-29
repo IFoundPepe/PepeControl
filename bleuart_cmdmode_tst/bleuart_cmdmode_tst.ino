@@ -104,9 +104,14 @@ Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(VS1053_RESET
 /*=========================================================================*/
 
 // GLOBAL VARIABLES CUZ I IZ BAD CODER!!!! At least I initialized them...
-int look  = 128;
-int lean  = 0;
-int flap  = 0;
+int look = 128;
+int turn = 0;
+int flapLeft = 0;
+int flapRight = 0;
+int blinkLeft = 0;
+int blinkRight = 0;
+int tail = 0;
+int key = 0;
 int tweet = 0;
 
 int laser_count = 0;
@@ -234,9 +239,7 @@ void setup(void)
   musicPlayer.setVolume(1,1);
 
   //
-  
-
-
+ 
 }
 
 /**************************************************************************/
@@ -275,18 +278,18 @@ void loop(void)
   // Some data was found, its in the buffer
   Serial.print(F("[Recv] "));
 
-  String tmp = "";
+//  String tmp = "";
+//  
+// for(int i = 0; ble.buffer[i] != '%'; i++)
+// { 
+//    tmp += ble.buffer[i];
+// }
+//  //parse the data
+//  char packet[tmp.length()+1];
+//  
+//  tmp.toCharArray(packet, tmp.length()+1);
   
- for(int i = 0; ble.buffer[i] != '%'; i++)
- { 
-    tmp += ble.buffer[i];
- }
-  //parse the data
-  char packet[tmp.length()+1];
-  
-  tmp.toCharArray(packet, tmp.length()+1);
-  
-  parseDataPacket(packet);
+  parseDataPacket(ble.buffer);
 
   //update servo positions based on new data
   setServoPositions();
@@ -298,7 +301,7 @@ void loop(void)
   }
   
   //Serial.println(tmp);
-  tmp = "";
+//  tmp = "";
    /*not mirroring back the text*/
   //ble.print("AT+BLEUARTTX=");
   //ble.println(ble.buffer);
@@ -357,22 +360,71 @@ bool getUserInput(char buffer[], uint8_t maxSize)
 
 bool parseDataPacket(const char* input)
 {
-    if(sscanf( input,"%d|%d|%d|%d", &look,&lean,&flap,&tweet ) == 4)
-    {
-      Serial.println(look);
-      Serial.println(lean);
-      Serial.println(flap);
-      Serial.println(tweet);
-      return true;
-    }
-    return false;
+  Serial.println(input);
+  int i = 0;
+  look =0;
+  turn = 0;
+  flapLeft = 0;
+  flapRight = 0;
+  blinkLeft = 0;
+  blinkRight = 0;
+  tail = 0;
+  key = 0;
+  tweet = 0;
+//  look =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  turn =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  flapLeft =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  flapRight =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  blinkLeft =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  blinkRight =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  tail =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  key =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+//  tweet =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
+
+
+  look =  input[i++];
+//  look =  input[i++] | (input[i++] << 8);
+  turn =  input[i++];
+//  turn =  input[i++] | (input[i++] << 8);
+  flapLeft =  input[i++] | (input[i++] << 8);
+  flapRight =  input[i++] | (input[i++] << 8);
+//  blinkLeft =  input[i++] | (input[i++] << 8);
+//  blinkRight =  input[i++] | (input[i++] << 8);
+  blinkLeft =  input[i++];
+  blinkRight =  input[i++];
+//  tail =  input[i++] | (input[i++] << 8);
+//  key =  input[i++] | (input[i++] << 8);
+//  tweet =  input[i++] | (input[i++] << 8);
+  tail =  input[i++];
+  key =  input[i++];
+  tweet =  input[i++];
+  
+//  turn =  input[0] + (input[1] << 8) + (input[2] << 16) + (input[3] << 24);
+//  turn = (input[0] << 24) + (input[1] << 16) + (input[2] << 8) + input[3];
+  Serial.println(look);
+  Serial.println(turn);
+  Serial.println(flapLeft);
+  Serial.println(flapRight);
+  Serial.println(blinkLeft);
+  Serial.println(blinkRight);
+  Serial.println(tail);
+  Serial.println(key);
+  Serial.println(tweet);
+  
+  return true;
 }
 int pulselength = 0;
 int prevPulseLength = 0;
 bool setServoPositions()
 {  
-  pwm.setPWM(1, 0, lean);
-  pwm.setPWM(2, 0, flap);
+  pwm.setPWM(1, 0, turn);
+  pwm.setPWM(2, 0, flapRight);
+  pwm.setPWM(3, 0, tail);
+  pwm.setPWM(4, 0, tweet);
+  pwm.setPWM(5, 0, key);
+  pwm.setPWM(6, 0, flapLeft);
+  pwm.setPWM(7, 0, blinkLeft);
+  pwm.setPWM(8, 0, blinkRight);
 
   pulselength = map(look, 0, 180, SERVOMIN, SERVOMAX);
   if (pulselength > prevPulseLength) {
