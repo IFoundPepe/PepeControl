@@ -112,6 +112,9 @@ int blinkLeft = 0;
 int blinkRight = 0;
 int tail = 0;
 int key = 0;
+int laser = 0;
+int eyeRight = 0;
+int eyeLeft = 0;
 int tweet = 0;
 
 int laser_count = 0;
@@ -371,6 +374,9 @@ bool parseDataPacket(const char* input)
   tail = 0;
   key = 0;
   tweet = 0;
+  laser = 0;
+  eyeRight = 0;
+  eyeLeft = 0;
 //  look =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
 //  turn =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
 //  flapLeft =  input[i++] | (input[i++] << 8) | (input[i++] << 16) | (input[i++] << 24);
@@ -386,8 +392,10 @@ bool parseDataPacket(const char* input)
 //  look =  input[i++] | (input[i++] << 8);
   turn =  input[i++];
 //  turn =  input[i++] | (input[i++] << 8);
-  flapLeft =  input[i++] | (input[i++] << 8);
-  flapRight =  input[i++] | (input[i++] << 8);
+  flapLeft =  input[i++];
+  flapRight =  input[i++];
+//  flapLeft =  input[i++] | (input[i++] << 8);
+//  flapRight =  input[i++] | (input[i++] << 8);
 //  blinkLeft =  input[i++] | (input[i++] << 8);
 //  blinkRight =  input[i++] | (input[i++] << 8);
   blinkLeft =  input[i++];
@@ -398,6 +406,9 @@ bool parseDataPacket(const char* input)
   tail =  input[i++];
   key =  input[i++];
   tweet =  input[i++];
+  eyeRight = input[i++];
+  eyeLeft = input[i++];
+  laser = input[i++];
   
 //  turn =  input[0] + (input[1] << 8) + (input[2] << 16) + (input[3] << 24);
 //  turn = (input[0] << 24) + (input[1] << 16) + (input[2] << 8) + input[3];
@@ -410,14 +421,28 @@ bool parseDataPacket(const char* input)
   Serial.println(tail);
   Serial.println(key);
   Serial.println(tweet);
+  Serial.println(eyeRight);
+  Serial.println(eyeLeft);
+  Serial.println(laser);
   
   return true;
 }
-int pulselength = 0;
-int prevPulseLength = 0;
+
+int pulselengthLook = 0;
+int prevPulseLengthLook = 0;
+
+int pulselengthTurn = 0;
+int prevPulseLengthTurn = 0;
+
+//int pulseBlinkRight = 0;
+//int pulseBlinkRightPrev = 0;
+//
+//int pulseBlinkLeft = 0;
+//int pulseBlinkLeftPrev = 0;
+
 bool setServoPositions()
 {  
-  pwm.setPWM(1, 0, turn);
+//  pwm.setPWM(1, 0, turn);
   pwm.setPWM(2, 0, flapRight);
   pwm.setPWM(3, 0, tail);
   pwm.setPWM(4, 0, tweet);
@@ -426,21 +451,40 @@ bool setServoPositions()
   pwm.setPWM(7, 0, blinkLeft);
   pwm.setPWM(8, 0, blinkRight);
 
-  pulselength = map(look, 0, 180, SERVOMIN, SERVOMAX);
-  if (pulselength > prevPulseLength) {
-    for (uint16_t pulselen = prevPulseLength; pulselen < pulselength; pulselen++) {
-      pwm.setPWM(0, 0, pulselen);
+  pulselengthLook = map(look, 0, 180, SERVOMIN, SERVOMAX);
+  updateServo(pulselengthLook, prevPulseLengthLook, 0);
+  prevPulseLengthLook = pulselengthLook;
+
+  pulselengthTurn = map(turn, 0, 180, SERVOMIN, SERVOMAX);
+  updateServo(pulselengthTurn, prevPulseLengthTurn, 1);
+  prevPulseLengthTurn = pulselengthTurn;
+
+//  pulseBlinkRight = map(blinkRight, 0, 180, SERVOMIN, SERVOMAX);
+//  updateServo(pulseBlinkRight, pulseBlinkRightPrev, 7);
+//  pulseBlinkRightPrev = pulseBlinkRight;
+//
+//  pulseBlinkLeft = map(blinkLeft, 0, 180, SERVOMIN, SERVOMAX);
+//  updateServo(pulseBlinkLeft, pulseBlinkLeftPrev, 7);
+//  pulseBlinkLeftPrev = pulseBlinkLeft;
+
+  
+  
+  return true;
+}
+
+void updateServo(int current, int previous, int pin)
+{
+  if (current > previous) {
+    for (uint16_t pulselen = previous; pulselen < current; pulselen++) {
+      pwm.setPWM(pin, 0, pulselen);
     }
   }
   else 
   {
-    for (uint16_t pulselen = prevPulseLength; pulselen > pulselength; pulselen--) {
-      pwm.setPWM(0, 0, pulselen); 
+    for (uint16_t pulselen = previous; pulselen > current; pulselen--) {
+      pwm.setPWM(pin, 0, pulselen); 
     }
   }
-  prevPulseLength = pulselength;
-  
-  return true;
 }
 
 /// File listing helper
