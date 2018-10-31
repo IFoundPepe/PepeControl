@@ -58,14 +58,32 @@ Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(VS1053_RESET
 // want these to be as small/large as possible without hitting the hard stop
 // for max range. You'll have to tweak them as necessary to match the servos you
 // have!
-#define SERVOMIN  165 // this is the 'minimum' pulse length count (out of 4096)
-#define SERVOMAX  540 // this is the 'maximum' pulse length count (out of 4096)
+#define SERVOMIN  215 // this is the 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  465 // this is the 'maximum' pulse length count (out of 4096)
 #define MAXFILELENGTH 100
 
 #define FLAPMIN   325
 #define FLAPMAX   600
 
+#define TURNMIN 215
+#define TURNMAX 500
 
+#define RIGHTFLAPMIN 160
+#define RIGHTFLAPMAX 330
+
+#define LEFTFLAPMIN 320
+#define LEFTFLAPMAX 490
+
+#define BLINKLEFTMIN 125
+#define BLINKLEFTMAX 280
+
+#define BLINKRIGHTMIN 340
+#define BLINKRIGHTMAX 480
+
+#define TAILMIN 200
+#define TAILMAX 400
+
+bool firstTime = true;
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -295,7 +313,11 @@ void loop(void)
   parseDataPacket(ble.buffer);
 
   //update servo positions based on new data
+  if (!firstTime) {
   setServoPositions();
+  } else {
+    firstTime = false;
+  }
 
   if(tweet > 0 && tweet < (MAXFILELENGTH-1) )
   {
@@ -409,6 +431,8 @@ bool parseDataPacket(const char* input)
   eyeRight = input[i++];
   eyeLeft = input[i++];
   laser = input[i++];
+
+
   
 //  turn =  input[0] + (input[1] << 8) + (input[2] << 16) + (input[3] << 24);
 //  turn = (input[0] << 24) + (input[1] << 16) + (input[2] << 8) + input[3];
@@ -443,20 +467,27 @@ int prevPulseLengthTurn = 0;
 bool setServoPositions()
 {  
 //  pwm.setPWM(1, 0, turn);
-  pwm.setPWM(2, 0, flapRight);
-  pwm.setPWM(3, 0, tail);
-  pwm.setPWM(4, 0, tweet);
-  pwm.setPWM(5, 0, key);
-  pwm.setPWM(6, 0, flapLeft);
-  pwm.setPWM(7, 0, blinkLeft);
-  pwm.setPWM(8, 0, blinkRight);
+  pwm.setPWM(1, 0, map(flapRight, 0, 90, RIGHTFLAPMIN, RIGHTFLAPMAX));
+  pwm.setPWM(2, 0, map(tail, 0, 90, TAILMIN, TAILMAX));
+//  pwm.setPWM(4, 0, tweet);
+//  pwm.setPWM(5, 0, key);
+
+//  pulselengthLook = map(flapLeft, 0, 180, SERVOMIN, SERVOMAX);
+  pwm.setPWM(6, 0, map(flapLeft, 0, 90, LEFTFLAPMIN, LEFTFLAPMAX));
+  
+  pwm.setPWM(4, 0, map(blinkLeft, 0, 180, BLINKLEFTMIN, BLINKLEFTMAX));
+  pwm.setPWM(5, 0, map(blinkRight, 0, 180, BLINKRIGHTMIN, BLINKRIGHTMAX));
 
   pulselengthLook = map(look, 0, 180, SERVOMIN, SERVOMAX);
-  updateServo(pulselengthLook, prevPulseLengthLook, 0);
+  if (pulselengthLook != prevPulseLengthLook ) {
+    updateServo(pulselengthLook, prevPulseLengthLook, 0);
+  }
   prevPulseLengthLook = pulselengthLook;
 
-  pulselengthTurn = map(turn, 0, 180, SERVOMIN, SERVOMAX);
-  updateServo(pulselengthTurn, prevPulseLengthTurn, 1);
+  pulselengthTurn = map(turn, 0, 180, TURNMIN, TURNMAX);
+  if (pulselengthTurn != prevPulseLengthTurn) {
+    updateServo(pulselengthTurn, prevPulseLengthTurn, 3);
+  }
   prevPulseLengthTurn = pulselengthTurn;
 
 //  pulseBlinkRight = map(blinkRight, 0, 180, SERVOMIN, SERVOMAX);
@@ -467,7 +498,14 @@ bool setServoPositions()
 //  updateServo(pulseBlinkLeft, pulseBlinkLeftPrev, 7);
 //  pulseBlinkLeftPrev = pulseBlinkLeft;
 
-  
+  if ( laser >= 1 ) {
+    digitalWrite(LASERPIN,HIGH);
+    digitalWrite(LASERPIN-1,HIGH);
+  }
+  else {
+    digitalWrite(LASERPIN,LOW);
+    digitalWrite(LASERPIN-1,LOW);
+  }
   
   return true;
 }
