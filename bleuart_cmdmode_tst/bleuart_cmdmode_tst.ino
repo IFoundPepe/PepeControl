@@ -69,19 +69,22 @@ Adafruit_VS1053_FilePlayer musicPlayer = Adafruit_VS1053_FilePlayer(VS1053_RESET
 #define TURNMAX 500
 
 #define RIGHTFLAPMIN 160
-#define RIGHTFLAPMAX 330
+#define RIGHTFLAPMAX 315
 
 #define LEFTFLAPMIN 320
 #define LEFTFLAPMAX 490
 
 #define BLINKLEFTMIN 125
-#define BLINKLEFTMAX 280
+#define BLINKLEFTMAX 275
 
 #define BLINKRIGHTMIN 340
 #define BLINKRIGHTMAX 480
 
-#define TAILMIN 200
-#define TAILMAX 400
+#define TAILMIN 180
+#define TAILMAX 320
+
+#define KEYMIN 200
+#define KEYMAX 400
 
 bool firstTime = true;
 
@@ -122,10 +125,10 @@ bool firstTime = true;
 /*=========================================================================*/
 
 // GLOBAL VARIABLES CUZ I IZ BAD CODER!!!! At least I initialized them...
-int look = 128;
-int turn = 0;
-int flapLeft = 0;
-int flapRight = 0;
+int look = 90;
+int turn = 90;
+int flapLeft = 90;
+int flapRight = 90;
 int blinkLeft = 0;
 int blinkRight = 0;
 int tail = 0;
@@ -136,6 +139,19 @@ int eyeLeft = 0;
 int tweet = 0;
 
 int laser_count = 0;
+
+const int COLORS[] = { 
+  0x000000, // black
+  0x00ffbb, // aqua 
+  0xff0000, // red
+  0xffffff, // white
+  0x0000ff, // blue
+  0x00ff00, // green
+  0xffff00, // yellow
+  0xff00ff, // magenta
+  0x99900ff, // electric purple
+  0xff9900, // orange peel
+}; 
 
 char* soundArray[MAXFILELENGTH]={"Pepe1.mp3", "Pepe2.mp3", "Pepe3.mp3", "Pepe4.mp3", "Pepe5.mp3",
 "Pepe6.mp3","Pepe7.mp3", "Pepe8.mp3", "Pepe9.mp3", "Pepe10.mp3","whistle.mp3"};
@@ -245,16 +261,21 @@ void setup(void)
   if (! musicPlayer.begin()) { // initialise the music player
      Serial.println(F("Couldn't find VS1053, do you have the right pins defined?"));
      while (1);
-  }
+  }  
+  musicPlayer.sineTest(0x44, 500);    // Make a tone to indicate VS1053 is working
+  
+
+  // list files
+  printDirectory(SD.open("/"), 0);
   
   if (!SD.begin(CARDCS)) {
     Serial.println(F("SD failed, or not present"));
-    //while (1);  // don't do anything more
+//    while (1);  // don't do anything more
   }
   Serial.println("SD OK!");
   
   // list files
-  //printDirectory(SD.open("/"), 0);
+  printDirectory(SD.open("/"), 0);
   
   // Set volume for left, right channels. lower numbers == louder volume!
   musicPlayer.setVolume(1,1);
@@ -313,17 +334,9 @@ void loop(void)
   parseDataPacket(ble.buffer);
 
   //update servo positions based on new data
-  if (!firstTime) {
   setServoPositions();
-  } else {
-    firstTime = false;
-  }
 
-  if(tweet > 0 && tweet < (MAXFILELENGTH-1) )
-  {
-      musicPlayer.setVolume(1,1);
-      musicPlayer.playFullFile(soundArray[tweet - 1]);
-  }
+
   
   //Serial.println(tmp);
 //  tmp = "";
@@ -470,7 +483,7 @@ bool setServoPositions()
   pwm.setPWM(1, 0, map(flapRight, 0, 90, RIGHTFLAPMIN, RIGHTFLAPMAX));
   pwm.setPWM(2, 0, map(tail, 0, 90, TAILMIN, TAILMAX));
 //  pwm.setPWM(4, 0, tweet);
-//  pwm.setPWM(5, 0, key);
+  pwm.setPWM(7, 0, key);
 
 //  pulselengthLook = map(flapLeft, 0, 180, SERVOMIN, SERVOMAX);
   pwm.setPWM(6, 0, map(flapLeft, 0, 90, LEFTFLAPMIN, LEFTFLAPMAX));
@@ -498,6 +511,12 @@ bool setServoPositions()
 //  updateServo(pulseBlinkLeft, pulseBlinkLeftPrev, 7);
 //  pulseBlinkLeftPrev = pulseBlinkLeft;
 
+  // Turn Right Eye off
+  strip.setPixelColor(1,COLORS[eyeRight]); 
+  // Turn Left Eye
+  strip.setPixelColor(0,COLORS[eyeLeft]); 
+  strip.show();
+
   if ( laser >= 1 ) {
     digitalWrite(LASERPIN,HIGH);
     digitalWrite(LASERPIN-1,HIGH);
@@ -507,6 +526,11 @@ bool setServoPositions()
     digitalWrite(LASERPIN-1,LOW);
   }
   
+  if(tweet > 0 && tweet < (MAXFILELENGTH-1) )
+  {
+      musicPlayer.setVolume(1,1);
+      musicPlayer.playFullFile(soundArray[tweet - 1]);
+  }
   return true;
 }
 
